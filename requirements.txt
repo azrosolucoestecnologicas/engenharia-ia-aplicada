@@ -1,0 +1,6 @@
+# Substitua este arquivo pelo resultado de `pip freeze > requirements.txt`
+# depois de instalar, para travar as versoes exatas da sua maquina.
+anthropic
+openai
+python-dotenv
+pytest
