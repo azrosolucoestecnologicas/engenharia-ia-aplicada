@@ -9,6 +9,7 @@ Nada mais. O laco da Aula 0.3 nao muda uma linha.
 """
 
 import inspect                   # le assinatura e docstring das funcoes
+import typing                     # Literal -> enum no JSON Schema
 from dataclasses import dataclass, field
 
 
@@ -40,6 +41,58 @@ class Ferramenta:
 REGISTRO = {}
 
 
+def _tipo_json(anotacao, nome_ferramenta, nome_param):
+    """Traduz o type hint para JSON Schema.
+
+    Aula 0.5: alem dos quatro tipos simples, aceitamos Literal, que
+    vira 'enum'. Enum fecha o vocabulario: em vez de o modelo inventar
+    "urgentissima", ele so pode escolher entre os valores que existem.
+    """
+    if typing.get_origin(anotacao) is typing.Literal:
+        valores = list(typing.get_args(anotacao))
+        # O tipo do enum e o tipo do primeiro valor (na pratica, string).
+        base = MAPA_TIPOS.get(type(valores[0]), "string")
+        return {"type": base, "enum": valores}
+
+    tipo = MAPA_TIPOS.get(anotacao)
+    if tipo is None:
+        raise TypeError(
+            f"Tipo nao suportado em '{nome_ferramenta}.{nome_param}': "
+            f"{anotacao}. Use str, int, float, bool ou Literal."
+        )
+    return {"type": tipo}
+
+
+def _partir_docstring(doc):
+    """Separa a docstring em (descricao da ferramenta, descricao por parametro).
+
+    Formato esperado, estilo Google:
+
+        Resumo do que a ferramenta faz e quando usar.
+
+        Args:
+            email: Email do lead, ex: nome@empresa.com
+            plano: Plano atual do lead
+
+    A parte antes de 'Args:' e o que o modelo le para DECIDIR usar a
+    ferramenta. As linhas de Args descrevem cada argumento, e entram no
+    JSON Schema. Os dois textos sao prompt: e deles que sai a acuracia
+    de selecao.
+    """
+    if "Args:" not in doc:
+        return doc.strip(), {}
+
+    cabeca, _, cauda = doc.partition("Args:")
+    descricoes = {}
+    for linha in cauda.strip().splitlines():
+        linha = linha.strip()
+        if not linha or ":" not in linha:
+            continue
+        nome, _, texto = linha.partition(":")
+        descricoes[nome.strip()] = texto.strip()
+    return cabeca.strip(), descricoes
+
+
 def ferramenta(func):
     """Decorator que REGISTRA a funcao como ferramenta do agente.
 
@@ -49,6 +102,8 @@ def ferramenta(func):
     Python comum, inclusive nos testes.
     """
     assinatura = inspect.signature(func)
+    doc_bruta = inspect.getdoc(func) or ""
+    descricao, docs_params = _partir_docstring(doc_bruta)
 
     propriedades = {}
     obrigatorios = []
@@ -65,20 +120,18 @@ def ferramenta(func):
                 f"'{nome_param}' sem type hint. Anote o tipo."
             )
 
-        tipo_json = MAPA_TIPOS.get(anotacao)
-        if tipo_json is None:
-            raise TypeError(
-                f"Tipo nao suportado em '{func.__name__}.{nome_param}': "
-                f"{anotacao}. Use str, int, float ou bool."
-            )
+        prop = _tipo_json(anotacao, func.__name__, nome_param)
 
-        propriedades[nome_param] = {"type": tipo_json}
+        # A descricao do parametro (do bloco Args:) entra no schema.
+        if nome_param in docs_params:
+            prop["description"] = docs_params[nome_param]
+
+        propriedades[nome_param] = prop
 
         # Sem valor padrao = obrigatorio. E o sinal que o inspect da.
         if param.default is inspect.Parameter.empty:
             obrigatorios.append(nome_param)
 
-    descricao = inspect.getdoc(func) or ""
     if not descricao:
         # Descricao de ferramenta e PROMPT: e o texto que o modelo le
         # para decidir usar. Sem ela, a acuracia de selecao despenca.
