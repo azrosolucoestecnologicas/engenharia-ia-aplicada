@@ -20,6 +20,7 @@ azure-core==1.41.0
 azure-identity==1.25.3
 azure-search-documents==12.0.0
 azure-storage-blob==12.30.1
+backoff==2.2.1
 baycomp==1.0.3
 bcrypt==5.0.0
 boltons @ file:///croot/boltons_1751383775419/work
@@ -108,6 +109,7 @@ keyring @ file:///croot/keyring_1745484691218/work
 keyrings.alt==5.0.2
 kiwisolver==1.4.9
 kubernetes==36.0.3
+langfuse==4.17.0
 libmambapy @ file:///croot/mamba-split_1734469461757/work/libmambapy
 lxml==6.0.2
 Markdown==3.10.3
@@ -145,12 +147,15 @@ oauthlib==3.3.1
 onnxruntime==1.27.0
 openai==3.13.0
 openpyxl==3.1.5
-opentelemetry-api==1.44.0
-opentelemetry-exporter-otlp-proto-common==1.44.0
+opentelemetry-api==1.45.0
+opentelemetry-exporter-http-transport==0.66b0
+opentelemetry-exporter-otlp-common==0.66b0
+opentelemetry-exporter-otlp-proto-common==1.45.0
 opentelemetry-exporter-otlp-proto-grpc==1.44.0
-opentelemetry-proto==1.44.0
-opentelemetry-sdk==1.44.0
-opentelemetry-semantic-conventions==0.65b0
+opentelemetry-exporter-otlp-proto-http==1.45.0
+opentelemetry-proto==1.45.0
+opentelemetry-sdk==1.45.0
+opentelemetry-semantic-conventions==0.66b0
 openTSNE==1.0.2
 orange-canvas-core==0.2.6
 orange-widget-base==4.26.0
@@ -260,6 +265,7 @@ webencodings==0.6.1
 websocket-client==1.9.0
 websockets==17.0
 wheel==0.45.1
+wrapt==2.5.0
 xgboost==2.0.3
 xlrd==2.0.2
 xlsxwriter==3.2.9

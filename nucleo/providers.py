@@ -82,6 +82,14 @@ class RespostaLLM:
     pedidos: list                   # list[PedidoFerramenta]; vazia = acabou
     mensagem_assistant: Any = None  # o turno CRU do assistant, para o historico
 
+    # Aula 0.7: tokens da chamada. Normalizados AQUI porque cada
+    # provider nomeia os campos de um jeito, e token e a unica regua de
+    # custo que existe nesta area. Default 0 para nao quebrar quem
+    # constroi um RespostaLLM so com os tres primeiros campos.
+    tokens_entrada: int = 0
+    tokens_saida: int = 0
+    modelo: str = ""
+
 
 def chat_ferramentas(provider, messages, ferramentas, system=None,
                      max_tokens=1024):
@@ -120,6 +128,12 @@ def chat_ferramentas(provider, messages, ferramentas, system=None,
             # O turno do assistant volta CRU para o historico: a API exige
             # rever o proprio pedido antes de receber o resultado.
             mensagem_assistant={"role": "assistant", "content": resp.content},
+            # Na Anthropic os campos sao input_tokens / output_tokens.
+            tokens_entrada=getattr(getattr(resp, "usage", None),
+                                   "input_tokens", 0),
+            tokens_saida=getattr(getattr(resp, "usage", None),
+                                 "output_tokens", 0),
+            modelo=config.ANTHROPIC_MODEL,
         )
 
     if provider == "openai":
@@ -144,10 +158,16 @@ def chat_ferramentas(provider, messages, ferramentas, system=None,
                 argumentos=json.loads(tc.function.arguments),
             ))
 
+        uso = getattr(resp, "usage", None)
         return RespostaLLM(
             texto=msg.content or "",
             pedidos=pedidos,
             mensagem_assistant=msg,              # a mensagem crua do SDK
+            # Na OpenAI os mesmos numeros se chamam prompt_tokens /
+            # completion_tokens. A diferenca morre aqui.
+            tokens_entrada=getattr(uso, "prompt_tokens", 0),
+            tokens_saida=getattr(uso, "completion_tokens", 0),
+            modelo=config.OPENAI_MODEL,
         )
 
     raise ValueError(f"Provider desconhecido: {provider}")
