@@ -27,7 +27,7 @@ na série em qualquer ponto, com o projeto exatamente como ele estava naquela
 aula:
 
 ```bash
-git clone https://github.com/thiagoazro/engenharia-ia-aplicada.git
+git clone https://github.com/azrosolucoestecnologicas/engenharia-ia-aplicada.git
 cd engenharia-ia-aplicada
 git checkout aula-0.3   # o projeto como está ao fim da aula 0.3
 ```
