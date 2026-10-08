@@ -23,6 +23,12 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 
+from dotenv import load_dotenv
+
+# Carrega o .env AQUI tambem: este modulo pode ser importado antes do
+# config (o agente.py faz isso), e a checagem abaixo roda na importacao.
+load_dotenv()
+
 # A ponte so liga com credencial no ambiente. Sem isso, so o rastreador
 # local roda, e nada quebra.
 TRACING_ATIVO = bool(os.getenv("LANGFUSE_PUBLIC_KEY"))

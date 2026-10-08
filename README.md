@@ -12,8 +12,8 @@ As aulas são publicadas no LinkedIn do
 duas por semana durante a temporada. O programa completo da série está em
 [`docs/Programa_Serie_Engenharia_IA_Aplicada.pdf`](docs/Programa_Serie_Engenharia_IA_Aplicada.pdf).
 
-> **Status: a Aula 0.1 chega em 15/09/2026.** Dê watch no repositório para ser
-> avisado.
+> **Status: Fase 0 concluída.** As oito aulas foram publicadas entre 15/09 e
+> 08/10/2026. Dê watch no repositório para ser avisado da Fase 1.
 
 ---
 
@@ -43,13 +43,13 @@ resiliente a falha e rastreado com observabilidade.
 | Aula | Tema | Tag | Status |
 |------|------|-----|--------|
 | 0.1 | Setup e a camada agnóstica de provider | `aula-0.1` | 15/09 |
-| 0.2 | Tool use, o mecanismo cru | `aula-0.2` | em breve |
-| 0.3 | O loop de agente | `aula-0.3` | em breve |
-| 0.4 | Registro de ferramentas e schema portável | `aula-0.4` | em breve |
-| 0.5 | As três ferramentas reais do domínio | `aula-0.5` | em breve |
-| 0.6 | Saída estruturada e resiliência a erro | `aula-0.6` | em breve |
-| 0.7 | Observabilidade desde o berço | `aula-0.7` | em breve |
-| 0.8 | Consolidação: o primeiro tijolo do Núcleo | `fase-0` | em breve |
+| 0.2 | Tool use, o mecanismo cru | `aula-0.2` | 17/09 |
+| 0.3 | O loop de agente | `aula-0.3` | 22/09 |
+| 0.4 | Registro de ferramentas e schema portável | `aula-0.4` | 24/09 |
+| 0.5 | As três ferramentas reais do domínio | `aula-0.5` | 29/09 |
+| 0.6 | Saída estruturada e resiliência a erro | `aula-0.6` | 01/10 |
+| 0.7 | Observabilidade desde o berço | `aula-0.7` | 06/10 |
+| 0.8 | Consolidação: o primeiro tijolo do Núcleo | `fase-0` | 08/10 |
 
 ## O mapa completo da série
 
