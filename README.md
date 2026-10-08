@@ -80,9 +80,21 @@ rede neural e não é uma introdução à programação.
   mostra os dois lado a lado)
 - Git
 
-As instruções de setup completas chegam com a Aula 0.1, e o arquivo
-`.env.example` documentará as variáveis necessárias. Nenhum segredo é
-versionado neste repositório.
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate        # no Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env             # preencha com suas chaves
+pytest                           # suíte rápida, sem chamar API
+```
+
+O `.env.example` documenta todas as variáveis: as chaves da Anthropic e da
+OpenAI, os nomes de modelo e, opcionalmente, as chaves do Langfuse para
+observabilidade (Aula 0.7). Os testes de integração batem em API real e custam
+token, por isso ficam fora da suíte padrão; rode-os de propósito com
+`pytest -m integration`. Nenhum segredo é versionado neste repositório.
 
 ## Os compromissos da série
 

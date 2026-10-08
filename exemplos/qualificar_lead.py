@@ -11,6 +11,13 @@ de entrada de quem chega, e o roteiro da demo gravada.
 Requer um .env preenchido (veja o .env.example).
 """
 
+import sys
+from pathlib import Path
+
+# Rodando como script, o Python so enxerga a pasta exemplos/. Colocamos
+# a raiz do repositorio no path para o pacote nucleo ser encontrado.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from nucleo import banco, ferramentas          # noqa: F401 - registra o dominio
 from nucleo import (QualificacaoLead, arvore, executores_seguros,
                     extrair_estruturado, resumo, rodar_agente, schemas)
