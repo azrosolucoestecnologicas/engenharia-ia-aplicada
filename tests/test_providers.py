@@ -8,8 +8,9 @@ from nucleo import providers
 # ---------- dublês: imitam a FORMA da resposta de cada SDK ----------
 
 def _fake_anthropic(texto):
-    # A Anthropic devolve uma lista de blocos com .text.
-    return SimpleNamespace(content=[SimpleNamespace(text=texto)])
+    # A Anthropic devolve uma lista de blocos, cada um com .type.
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="text", text=texto)])
 
 
 def _fake_openai(texto):
@@ -45,6 +46,25 @@ def test_anthropic_manda_system_separado(monkeypatch):
     assert chamadas["system"] == "seja breve"   # parametro a parte
     assert len(chamadas["messages"]) == 1       # a lista fica intacta
     assert "max_tokens" in chamadas             # obrigatorio na Anthropic
+
+
+# ---------- 2b. bloco de raciocinio antes do texto nao quebra ----------
+
+def test_anthropic_ignora_bloco_thinking(monkeypatch):
+    class FakeMessages:
+        def create(self, **kwargs):
+            # Com raciocinio ligado, o 1o bloco e "thinking", sem .text.
+            return SimpleNamespace(content=[
+                SimpleNamespace(type="thinking", thinking="pensando..."),
+                SimpleNamespace(type="text", text="ok"),
+            ])
+
+    monkeypatch.setattr(providers._anthropic, "messages", FakeMessages())
+
+    resultado = providers.chat(
+        "anthropic", [{"role": "user", "content": "oi"}])
+
+    assert resultado == "ok"
 
 
 # ---------- 3. na OpenAI, o system vira a 1a mensagem ----------

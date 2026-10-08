@@ -31,9 +31,9 @@ qualificado quem tem plano pro ou enterprise, ou MRR acima de 300;
 nesse caso, atualize o status e proponha uma reuniao. Problema tecnico
 vira ticket, nunca reuniao."""
 
-PERGUNTA = ("A Ana do TechFlow escreveu: o login pelo SSO esta dando "
-            "erro 500 desde ontem, e ela quer conversar sobre migrar "
-            "de plano.")
+PERGUNTA = ("A Ana do TechFlow (ana@techflow.com) escreveu: o login "
+            "pelo SSO esta dando erro 500 desde ontem, e ela quer "
+            "conversar sobre migrar de plano.")
 
 
 def main():

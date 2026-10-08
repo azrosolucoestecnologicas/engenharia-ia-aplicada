@@ -22,8 +22,11 @@ def _chamar_anthropic(messages, system=None, max_tokens=1024):
         kwargs["system"] = system
     # Faz a chamada de verdade e recebe a resposta.
     resposta = _anthropic.messages.create(**kwargs)
-    # A resposta vem como lista de blocos; pegamos o texto do 1o.
-    return resposta.content[0].text
+    # A resposta vem como lista de blocos. O 1o nem sempre e texto: com
+    # raciocinio ligado, vem um bloco "thinking" antes. Juntamos so os
+    # blocos de texto, como a chat_ferramentas ja faz.
+    return "".join(bloco.text for bloco in resposta.content
+                   if bloco.type == "text")
 
 
 def _chamar_openai(messages, system=None, max_tokens=1024):
