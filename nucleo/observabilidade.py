@@ -20,14 +20,8 @@ Observabilidade nunca pode ser requisito duro para o projeto subir.
 import os
 import time
 from contextlib import contextmanager
-from contextvars import ContextVar
+from contextvars import ContextVar, copy_context
 from dataclasses import dataclass, field
-
-from dotenv import load_dotenv
-
-# Carrega o .env AQUI tambem: este modulo pode ser importado antes do
-# config (o agente.py faz isso), e a checagem abaixo roda na importacao.
-load_dotenv()
 
 # A ponte so liga com credencial no ambiente. Sem isso, so o rastreador
 # local roda, e nada quebra.
@@ -71,30 +65,44 @@ class Passo:
         return entrada, saida
 
 
-# O trace corrente. ContextVar em vez de variavel global para o dia em
+# O PASSO CORRENTE. ContextVar em vez de variavel global para o dia em
 # que o Nucleo rodar com varias requisicoes simultaneas (Fase 4): cada
 # contexto enxerga o seu proprio trace.
-_pilha: ContextVar = ContextVar("pilha_de_passos", default=None)
+#
+# ATENCAO ao que esta aqui, porque mudou na Aula 1.3. Ate a Aula 1.2
+# esta variavel guardava uma LISTA (uma pilha de passos abertos), e
+# funcionou perfeitamente enquanto tudo era sequencial. O paralelismo
+# expos o problema: um ContextVar isola a REFERENCIA por contexto, nao
+# o objeto apontado. Duas threads lendo o mesmo ContextVar recebiam A
+# MESMA LISTA e davam append e pop nela ao mesmo tempo, e o pai de cada
+# passo virava sorteio.
+#
+# A correcao e guardar um VALOR IMUTAVEL: o passo atual. Cada contexto
+# faz o seu proprio .set(), que nenhum outro ve. A regra geral vale
+# fora daqui: ContextVar com objeto mutavel dentro nao isola nada.
+_atual: ContextVar = ContextVar("passo_atual", default=None)
 
 
 @contextmanager
 def observar(nome, tipo="span", entrada=None, modelo=""):
     """Abre um passo e o fecha ao sair do bloco.
 
-    O aninhamento sai de graca: cada passo aberto vira filho do que
-    estiver no topo da pilha. E isso que forma a arvore.
+    O aninhamento sai de graca: cada passo aberto vira filho do passo
+    que estiver corrente. E isso que forma a arvore.
     """
-    pilha = _pilha.get()
-    if pilha is None:
+    pai = _atual.get()
+    if pai is None:
         # Ninguem abriu um trace: nao rastreamos, mas o codigo roda.
         yield None
         return
 
     passo = Passo(nome=nome, tipo=tipo, entrada=entrada,
                   modelo=modelo, inicio=time.time())
-    if pilha:
-        pilha[-1].filhos.append(passo)
-    pilha.append(passo)
+    # list.append e atomico sob o GIL, entao varios filhos paralelos
+    # chegam inteiros. A ORDEM entre eles nao e garantida, e nenhum
+    # codigo deve depender dela.
+    pai.filhos.append(passo)
+    token = _atual.set(passo)
 
     # A ponte com a plataforma externa, quando existir, abre o mesmo
     # passo la. Nada do resto do Nucleo precisa saber disso.
@@ -103,20 +111,47 @@ def observar(nome, tipo="span", entrada=None, modelo=""):
         yield passo
     finally:
         passo.fim = time.time()
-        pilha.pop()
+        _atual.reset(token)
         _fechar_externo(externo, passo)
 
 
 @contextmanager
 def iniciar_trace(nome, entrada=None):
     """Abre a execucao inteira. Tudo que acontecer dentro vira filho."""
-    token = _pilha.set([])
+    raiz = Passo(nome=nome, tipo="trace", entrada=entrada,
+                 inicio=time.time())
+    token = _atual.set(raiz)
+    externo = _abrir_externo(nome, "trace", entrada)
     try:
-        with observar(nome, tipo="trace", entrada=entrada) as raiz:
-            yield raiz
+        yield raiz
     finally:
-        _pilha.reset(token)
+        raiz.fim = time.time()
+        _atual.reset(token)
+        _fechar_externo(externo, raiz)
         _enviar_pendentes()
+
+
+def em_thread(funcao, *args, **kwargs):
+    """Embala uma chamada para rodar em outra thread SEM perder o trace.
+
+    O problema, em uma frase: uma thread nova nao herda contexto
+    nenhum. Dentro dela, _atual.get() devolve None, todo observar()
+    vira no-op e o trace fica com um buraco exatamente onde o trabalho
+    paralelo aconteceu.
+
+    A correcao e copiar o contexto de quem SUBMETE e rodar a funcao
+    dentro dessa copia. Por isso esta funcao devolve um callable em vez
+    de executar: o copy_context() precisa acontecer na thread de
+    origem, no momento do submit.
+
+        executor.submit(em_thread(minha_funcao, arg1, arg2))
+
+    E exatamente o que o LangGraph faz por conta propria nos nos
+    paralelos dele, e e por isso que a versao em grafo desta aula nao
+    precisa chamar isto.
+    """
+    ctx = copy_context()
+    return lambda: ctx.run(funcao, *args, **kwargs)
 
 
 def registrar_uso(passo, tokens_entrada, tokens_saida, modelo=""):

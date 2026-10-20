@@ -40,9 +40,9 @@ from nucleo.estruturado import extrair_estruturado
 from nucleo.resiliencia import (ErroIrrecuperavel, executores_seguros,
                                 proteger)
 
-# Camada 5 - observabilidade (Aula 0.7)
-from nucleo.observabilidade import (arvore, iniciar_trace, observar,
-                                    registrar_uso, resumo)
+# Camada 5 - observabilidade (Aula 0.7, com em_thread vindo da Aula 1.3)
+from nucleo.observabilidade import (arvore, em_thread, iniciar_trace,
+                                    observar, registrar_uso, resumo)
 
 # ferramentas e banco NAO sao importados aqui de proposito: importar
 # nucleo.ferramentas tem efeito colateral (registra as tres ferramentas
@@ -65,6 +65,7 @@ __all__ = [
     "proteger", "executores_seguros", "ErroIrrecuperavel",
     # observabilidade
     "iniciar_trace", "observar", "registrar_uso", "arvore", "resumo",
+    "em_thread",
 ]
 
 __version__ = "0.8.0"      # fim da Fase 0

@@ -109,17 +109,26 @@ nucleo/
 ├── modelos.py           os contratos Pydantic                  (0.6)
 ├── resiliencia.py       erro de ferramenta como observação     (0.6)
 ├── estruturado.py       a saída final validada                 (0.6)
-├── observabilidade.py   trace, span e generation               (0.7)
+├── observabilidade.py   trace, span e generation               (0.7, 1.3)
 │
 │   # Fase 1 — a orquestração, sobre o motor acima
 ├── grafo.py             o laço como grafo de estado            (1.1)
 ├── fluxos.py            chaining e routing em Python puro      (1.2)
-└── grafo_fluxos.py      os mesmos padrões como grafo           (1.2)
+├── grafo_fluxos.py      os mesmos padrões como grafo           (1.2)
+├── paralelo.py          fan-out e orquestrador em Python puro   (1.3)
+└── grafo_paralelo.py    os mesmos dois, com a Send API          (1.3)
 ```
 
-Repare na divisão: a Fase 1 **acrescenta** orquestração sem alterar uma linha
-do motor da Fase 0. Se adotar um framework exigisse reescrever o motor, o
-motor estaria acoplado ao laço desde o começo.
+Repare na divisão: a Fase 1 **acrescenta** orquestração quase sem tocar no
+motor da Fase 0. Se adotar um framework exigisse reescrever o motor, o motor
+estaria acoplado ao laço desde o começo.
+
+A exceção é instrutiva e está registrada de propósito: a Aula 1.3 corrigiu o
+`observabilidade.py`. O paralelismo revelou que o tracer guardava estado
+mutável num `ContextVar`, o que funcionou por oito aulas enquanto tudo era
+sequencial e passou a mentir na primeira thread. Não foi acoplamento ao
+framework, foi um defeito que só um requisito novo conseguia expor, e a
+correção está coberta por teste.
 
 Duas fronteiras organizam o projeto, e as duas importam mais do que a
 organização em si:
